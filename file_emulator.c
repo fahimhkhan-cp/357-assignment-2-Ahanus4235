@@ -136,9 +136,8 @@ int main(int argc, char* argv[]){
             }
             else{
 
-            if (strlen(tokens[1])>32){
                 tokens[1][NAME_LEN]='\0';
-            }
+            
                 char* fileName=uint32_to_str(cwd);
             FILE *f = fopen(fileName, "rb");
             uint32_t inode;
@@ -194,6 +193,9 @@ int main(int argc, char* argv[]){
                 printf("No directory name specified\n");
             }
             else{
+
+                tokens[1][NAME_LEN]='\0';
+                
                 char* fileName=uint32_to_str(cwd);
             FILE *f = fopen(fileName, "rb");
             uint32_t inode;
