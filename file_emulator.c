@@ -132,7 +132,7 @@ int main(int argc, char* argv[]){
         //touch
         else if (strcmp(tokens[0],"touch")==0){
             if (strlen(tokens[1])==0){
-                printf("No directory name specified\n");
+                printf("No file name specified\n");
             }
             else{
                 char* fileName=uint32_to_str(cwd);
