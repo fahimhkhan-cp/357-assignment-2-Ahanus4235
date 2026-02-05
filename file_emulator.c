@@ -128,10 +128,62 @@ int main(int argc, char* argv[]){
                 printf("Specified name was not a  directory.\n");
             }
         }
-        else if (strcmp(tokens[0],"touch")==0){
-            printf("Valid command\n");
-        }
 
+        //touch
+        else if (strcmp(tokens[0],"touch")==0){
+            if (strlen(tokens[1])==0){
+                printf("No directory name specified\n");
+            }
+            else{
+                char* fileName=uint32_to_str(cwd);
+            FILE *f = fopen(fileName, "rb");
+            uint32_t inode;
+            char name[NAME_LEN];
+            int nameFound=0;
+            while (fread(&inode, sizeof(uint32_t), 1, f) == 1 &&
+           fread(name, 1, NAME_LEN, f) == NAME_LEN) {
+
+                //We need to check the cwd for an inode with the same name
+                if (strcmp(name,tokens[1])==0){
+                    nameFound=1;
+                    break;             
+                }    
+           }
+            if(nameFound==1){
+                printf("A file or directory with that name already exists.\n");
+            }
+            else if (inodes_count==1023){
+                    printf("maximum inode capacity reached.\n");
+                }
+            else{
+                char* newInodeNum = uint32_to_str(inodes_count);
+                FILE *newInode = fopen(newInodeNum,"w");
+                
+                char* cwdstr= uint32_to_str(cwd);
+                FILE *updatecwd=fopen(cwdstr,"a");
+                //Updating the cwd with the directory we are creating
+                fwrite(&inodes_count, sizeof(uint32_t), 1, updatecwd);
+                fwrite(tokens[1], 1, NAME_LEN, updatecwd);
+
+                //Adding the filename to the newly created file
+                fwrite(tokens[1], 1, NAME_LEN, newInode);
+
+                //Adding it to our inodes list of structs
+                //This will help in updating the inodes_list file on program exit
+                inodes[inodes_count].index=inode_num;
+                inodes[inodes_count].type='f';
+                
+                inodes_count+=1;
+
+                free(cwdstr);
+                fclose(updatecwd);
+                free(newInodeNum);
+                fclose(newInode);
+            }
+            free(fileName);
+            fclose(f);
+            }
+        }
         //mkdir
         else if (strcmp(tokens[0],"mkdir")==0){
             if (strlen(tokens[1])==0){
@@ -180,6 +232,7 @@ int main(int argc, char* argv[]){
                 inodes[inodes_count].type='d';
                 
                 inodes_count+=1;
+
                 free(cwdstr);
                 fclose(updatecwd);
                 free(newInodeNum);
