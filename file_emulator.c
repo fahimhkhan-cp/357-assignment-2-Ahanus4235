@@ -165,14 +165,14 @@ int main(int argc, char* argv[]){
                 char* cwdstr= uint32_to_str(cwd);
                 FILE *updatecwd=fopen(cwdstr,"a");
                 //Updating the cwd with the directory we are creating
-                fwrite(&cwd, sizeof(uint32_t), 1, updatecwd);
+                fwrite(&inodes_count, sizeof(uint32_t), 1, updatecwd);
                 fwrite(tokens[1], 1, NAME_LEN, updatecwd);
 
                 //Writing the two default entries in the directory
                 fwrite(&inodes_count, sizeof(uint32_t), 1, newInode);
-                fwrite(".", sizeof(NAME_LEN), 1, newInode);
+                fwrite(".", 1, NAME_LEN, newInode);
                 fwrite(&cwd, sizeof(uint32_t), 1, newInode);
-                fwrite("..", sizeof(NAME_LEN), 1, newInode);
+                fwrite("..", 1, NAME_LEN, newInode);
 
                 //Adding it to our inodes list of structs
                 //This will help in updating the inodes_list file on program exit
