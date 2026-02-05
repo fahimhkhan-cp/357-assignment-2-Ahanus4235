@@ -135,6 +135,10 @@ int main(int argc, char* argv[]){
                 printf("No file name specified\n");
             }
             else{
+
+            if (strlen(tokens[1])>32){
+                tokens[1][NAME_LEN]='\0';
+            }
                 char* fileName=uint32_to_str(cwd);
             FILE *f = fopen(fileName, "rb");
             uint32_t inode;
