@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
     //Now we can make our array of inode structs to work with
     inodes[0].index=inode_num;
     inodes[0].type=type;
-    int inodes_count=1;
+    uint32_t inodes_count=1;
 
     while( fread(&inode_num, sizeof(uint32_t), 1, inodes_list) &&
     fread(&type, sizeof(char), 1, inodes_list)){
@@ -80,8 +80,17 @@ int main(int argc, char* argv[]){
         //After this point, tokens should contain each command the user input
         //The command in tokens[0] should be among:
         //exit, ls, cd, touch, or mkdir
+
+        //exit function
         if (strcmp(tokens[0],"exit")==0){
-            printf("Exiting simulation\n");
+            printf("Exiting and saving.\n");
+
+            FILE *updateInodesList = fopen("inodes_list","w");
+            for (int c = 0; c<inodes_count;c++){
+                fwrite(&inodes[c].index, sizeof(uint32_t), 1, updateInodesList);
+                fwrite(&inodes[c].type, sizeof(char), 1, updateInodesList);
+            }
+            fclose(updateInodesList);
             exit(0);
         }
 
@@ -126,7 +135,7 @@ int main(int argc, char* argv[]){
         //mkdir
         else if (strcmp(tokens[0],"mkdir")==0){
             if (strlen(tokens[1])==0){
-                printf("No directory name specified");
+                printf("No directory name specified\n");
             }
             else{
                 char* fileName=uint32_to_str(cwd);
@@ -146,8 +155,35 @@ int main(int argc, char* argv[]){
             if(nameFound==1){
                 printf("A file or directory with that name already exists.\n");
             }
+            else if (inodes_count==1023){
+                    printf("maximum inode capacity reached.\n");
+                }
             else{
-                printf("%ld",sizeof(inodes));
+                char* newInodeNum = uint32_to_str(inodes_count);
+                FILE *newInode = fopen(newInodeNum,"w");
+                
+                char* cwdstr= uint32_to_str(cwd);
+                FILE *updatecwd=fopen(cwdstr,"a");
+                //Updating the cwd with the directory we are creating
+                fwrite(&cwd, sizeof(uint32_t), 1, updatecwd);
+                fwrite(tokens[1], 1, NAME_LEN, updatecwd);
+
+                //Writing the two default entries in the directory
+                fwrite(&inodes_count, sizeof(uint32_t), 1, newInode);
+                fwrite(".", sizeof(NAME_LEN), 1, newInode);
+                fwrite(&cwd, sizeof(uint32_t), 1, newInode);
+                fwrite("..", sizeof(NAME_LEN), 1, newInode);
+
+                //Adding it to our inodes list of structs
+                //This will help in updating the inodes_list file on program exit
+                inodes[inodes_count].index=inode_num;
+                inodes[inodes_count].type='d';
+                
+                inodes_count+=1;
+                free(cwdstr);
+                fclose(updatecwd);
+                free(newInodeNum);
+                fclose(newInode);
             }
             free(fileName);
             fclose(f);
@@ -199,3 +235,4 @@ char *uint32_to_str(uint32_t i)
 
    return str;
 }
+
